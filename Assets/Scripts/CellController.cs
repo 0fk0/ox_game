@@ -1,11 +1,13 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class CellController : MonoBehaviour
 {
     private bool isOccupied = false;
     private GameObject oObject, xObject;
+    private int index;
 
     private void Start()
     {
@@ -14,6 +16,10 @@ public class CellController : MonoBehaviour
 
         oObject.SetActive(false);
         xObject.SetActive(false);
+
+        int x = (int)transform.position.x / 2 + 1;
+        int y = -(int)transform.position.y / 2 + 1;
+        index = x + y * 3;
     }
 
     // セルが占有されているかどうかを返す
@@ -23,27 +29,35 @@ public class CellController : MonoBehaviour
     }
 
     // セルに印を付ける
-    public void MarkCell(bool isPlayerX)
+    public bool MarkCell(int turn)
     {
         if (!isOccupied){
             isOccupied = true;
 
-            if (isPlayerX)
+            if (turn == 1)
             {
-                // ×の印を表示する処理
+                // oの印を表示する処理
                 if (oObject != null)
                 {
                     oObject.SetActive(true);
+                    return true;
                 }
             }
-            else
+            else if(turn == -1)
             {
-                // ○の印を表示する処理表示にする
+                // xの印を表示する処理表示にする
                 if (xObject != null)
                 {
                     xObject.SetActive(true);
+                    return true;
                 }
             }
         }
+        return false;
+    }
+
+    public int getIndex()
+    {
+        return index;
     }
 }

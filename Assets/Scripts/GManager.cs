@@ -4,13 +4,13 @@ using UnityEngine;
 
 public class GManager : MonoBehaviour
 {
-    public GameObject[] cells; // 9つのマスを格納するための配列
-    public GameObject xPrefab; // ×のプレハブ
-    public GameObject oPrefab; // ○のプレハブ
-    
+    private int turn = 1; // ×プレイヤーのターンかどうか
+    public int[] board;
 
-    private bool isPlayerXTurn = true; // ×プレイヤーのターンかどうか
-
+    private void Start()
+    {
+        board = new int[9];
+    }
     private void Update()
     {
         // マウスの左ボタンがクリックされたら、マウス位置に応じて○または×を置く
@@ -34,17 +34,35 @@ public class GManager : MonoBehaviour
 
     private void PlaceSymbol(GameObject cell)
     {
-        if (isPlayerXTurn)
+        if(cell.GetComponent<CellController>().MarkCell(turn))
         {
-            Instantiate(xPrefab, cell.transform.position, Quaternion.identity);
-        }
-        else
-        {
-            Instantiate(oPrefab, cell.transform.position, Quaternion.identity);
-        }
+            int index = cell.GetComponent<CellController>().getIndex();
+            board[index] = turn;
+            isWin();
+            turn = -turn;
+        } 
+    }
 
-        isPlayerXTurn = !isPlayerXTurn;
-        cell.GetComponent<CellController>().MarkCell(isPlayerXTurn);
+    private void isWin()
+    {
+        if((board[0] != 0 && board[0] == board[1] && board[0] == board[2])
+        || (board[3] != 0 && board[3] == board[4] && board[3] == board[5])
+        || (board[6] != 0 && board[6] == board[7] && board[6] == board[8])
+        || (board[0] != 0 && board[0] == board[3] && board[0] == board[6])
+        || (board[1] != 0 && board[1] == board[4] && board[1] == board[7])
+        || (board[2] != 0 && board[2] == board[5] && board[2] == board[8])
+        || (board[0] != 0 && board[0] == board[4] && board[0] == board[8])
+        || (board[2] != 0 && board[2] == board[4] && board[2] == board[6]))
+        {
+            if(turn == 1)
+            {
+                Debug.Log("Oの勝ちです");
+            }else if(turn == -1)
+            {
+                Debug.Log("Xの勝ちです");
+            }
+            turn = 0;
+        }
     }
 
 }
