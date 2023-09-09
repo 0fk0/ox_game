@@ -17,12 +17,12 @@ public class GManager : MonoBehaviour
         if (Input.GetMouseButtonDown(0))
         {
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            RaycastHit hit;
+            RaycastHit2D hit2D = Physics2D.Raycast((Vector2)ray.origin, (Vector2)ray.direction);
 
-            if (Physics.Raycast(ray, out hit))
+            if (hit2D)
             {
-                GameObject cell = hit.collider.gameObject;
-                cell.GetComponent<SpriteRenderer>().color = Color.red;
+                GameObject cell = hit2D.collider.gameObject;
+                Debug.Log("ヒットしました！");
 
                 if (!cell.GetComponent<CellController>().IsOccupied())
                 {
