@@ -1,11 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GManager : MonoBehaviour
 {
     private int turn = 1; // ×プレイヤーのターンかどうか
+    private int turnNum = 0;
     public int[] board;
+    private string resultText = "";
 
     private void Start()
     {
@@ -26,10 +29,28 @@ public class GManager : MonoBehaviour
 
                 if (!cell.GetComponent<CellController>().IsOccupied())
                 {
+                    turnNum++;
                     PlaceSymbol(cell);
                 }
             }
         }
+
+        if(Input.GetKey(KeyCode.Space) && turn == 0)
+        {
+            SceneManager.LoadScene(1);
+        }
+    }
+    
+    private void OnGUI()
+    {
+        GUIStyle customStyle = new GUIStyle(GUI.skin.label)
+        {
+            fontSize = 30 // フォントサイズを設定
+        };
+        customStyle.normal.textColor = Color.red; // 文字の色を設定
+        // 結果を表示
+        Rect resultRect = new Rect(Screen.width/4, 20, 400, 40);
+        GUI.Label(resultRect, resultText,customStyle);
     }
 
     private void PlaceSymbol(GameObject cell)
@@ -54,13 +75,20 @@ public class GManager : MonoBehaviour
         || (board[0] != 0 && board[0] == board[4] && board[0] == board[8])
         || (board[2] != 0 && board[2] == board[4] && board[2] == board[6]))
         {
-            if(turn == 1)
+            if (turn == 1)
             {
-                Debug.Log("Oの勝ちです");
-            }else if(turn == -1)
-            {
-                Debug.Log("Xの勝ちです");
+                resultText = "Oの勝ちです";
             }
+            else if (turn == -1)
+            {
+                resultText = "Xの勝ちです";
+            }
+
+            turn = 0;
+        }
+        else if (turnNum == 9)
+        {
+            resultText = "引き分けです";
             turn = 0;
         }
     }
