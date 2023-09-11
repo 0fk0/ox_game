@@ -70,7 +70,7 @@ public class GManager : MonoBehaviour
 
     private void PlaceSymbol(GameObject cell)
     {
-        if(cell.GetComponent<CellController>().MarkCell(turn))
+        if(cell.GetComponent<CellController>().MarkCell())
         {
             int index = cell.GetComponent<CellController>().getIndex();
             board[index] = turn;

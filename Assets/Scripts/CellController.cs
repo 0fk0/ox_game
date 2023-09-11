@@ -1,3 +1,5 @@
+using Photon.Pun;
+using Photon.Realtime;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
@@ -5,6 +7,8 @@ using UnityEngine;
 
 public class CellController : MonoBehaviour
 {
+    private int PLAYER1 = 1;
+    private int PLAYER2 = 2;
     private bool isOccupied = false;
     private GameObject oObject, xObject;
     private int index;
@@ -29,12 +33,13 @@ public class CellController : MonoBehaviour
     }
 
     // セルに印を付ける
-    public bool MarkCell(int turn)
+    public bool MarkCell()
     {
+        int PlayerId = (int)PhotonNetwork.LocalPlayer.CustomProperties["PlayerID"];
         if (!isOccupied){
             isOccupied = true;
 
-            if (turn == 1)
+            if (PlayerId == PLAYER1)
             {
                 // oの印を表示する処理
                 if (oObject != null)
@@ -43,7 +48,7 @@ public class CellController : MonoBehaviour
                     return true;
                 }
             }
-            else if(turn == -1)
+            else if(PlayerId == PLAYER2)
             {
                 // xの印を表示する処理表示にする
                 if (xObject != null)
