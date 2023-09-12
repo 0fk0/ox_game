@@ -21,6 +21,7 @@ public class PlayerManager : MonoBehaviourPunCallbacks
             {"NextPlayerID", nextPlayerID + 1}
         };
         PhotonNetwork.CurrentRoom.SetCustomProperties(roomUpdateProps);
+
     }
 
     public override void OnJoinedRoom()

@@ -5,16 +5,20 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 
-public class CellController : MonoBehaviour
+public class CellController : MonoBehaviourPunCallbacks
 {
-    private int PLAYER1 = 1;
-    private int PLAYER2 = 2;
-    private bool isOccupied = false;
+    private int PLAYER1 = 0;
+    private int PLAYER2 = 1;
+    private GameObject gameManager;
     private GameObject oObject, xObject;
     private int index;
+    PhotonView gManagerPhotonView;
 
     private void Start()
     {
+        gameManager = GameObject.Find("GameManager");
+        gManagerPhotonView = gameManager.GetComponent<PhotonView>();
+
         oObject = transform.Find("o").gameObject;
         xObject = transform.Find("x").gameObject; 
 
@@ -26,43 +30,50 @@ public class CellController : MonoBehaviour
         index = x + y * 3;
     }
 
-    // セルが占有されているかどうかを返す
-    public bool IsOccupied()
-    {
-        return isOccupied;
-    }
-
     // セルに印を付ける
     public bool MarkCell()
     {
-        int PlayerId = (int)PhotonNetwork.LocalPlayer.CustomProperties["PlayerID"];
-        if (!isOccupied){
-            isOccupied = true;
+        int playerId = (int)PhotonNetwork.LocalPlayer.CustomProperties["PlayerID"];
+        GManager gManager = gameManager.GetComponent<GManager>();
+        int turnNum = gManager.getTurnNum();
 
-            if (PlayerId == PLAYER1)
+        if (gManager.getBoard(index) == -1){
+            gManagerPhotonView.RPC("RpcSetBoard", RpcTarget.All, index, playerId);
+            if ((playerId == PLAYER1) && ((turnNum % 2) == PLAYER1))
             {
                 // oの印を表示する処理
                 if (oObject != null)
                 {
-                    oObject.SetActive(true);
+                    photonView.RPC(nameof(RpcDisplayO), RpcTarget.All);
                     return true;
                 }
             }
-            else if(PlayerId == PLAYER2)
+            else if((playerId == PLAYER2) && ((turnNum % 2) == PLAYER2))
             {
                 // xの印を表示する処理表示にする
                 if (xObject != null)
                 {
-                    xObject.SetActive(true);
+                    photonView.RPC(nameof(RpcDisplayX), RpcTarget.All);
                     return true;
                 }
             }
         }
+        
         return false;
     }
 
     public int getIndex()
     {
         return index;
+    }
+
+    [PunRPC]
+    private void RpcDisplayO(){
+        oObject.SetActive(true);
+    }
+
+    [PunRPC]
+    private void RpcDisplayX(){
+        xObject.SetActive(true);
     }
 }

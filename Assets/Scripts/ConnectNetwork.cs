@@ -26,7 +26,7 @@ public class ConnectNetwork : MonoBehaviourPunCallbacks
     // ランダムなルームへの参加が失敗した時に呼ばれるコールバック
     public override void OnJoinRandomFailed(short returnCode, string message){
         var initialProps = new ExitGames.Client.Photon.Hashtable();
-        initialProps["NextPlayerID"] = 1;
+        initialProps["NextPlayerID"] = 0;
 
         var roomOptions = new RoomOptions();
         roomOptions.MaxPlayers = 2;
