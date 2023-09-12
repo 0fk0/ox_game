@@ -1,11 +1,16 @@
+using Photon.Pun;
+using Photon.Realtime;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class GManager : MonoBehaviour
+public class GManager : MonoBehaviourPunCallbacks
 {
-    private int turn = 1; // ×プレイヤーのターンかどうか
+    private int PLAYER1 = 0;
+    private int PLAYER2 = 1;
+    private int NO_PLAAYER = -1;
     private int turnNum = 0;
     public int[] board;
     private string resultText = "";
@@ -15,6 +20,10 @@ public class GManager : MonoBehaviour
     private void Start()
     {
         board = new int[9];
+        for (int i = 0; i < 9; i++){
+            board[i] = -1;
+        }
+
         lines = new GameObject[8];
         lines[0] = GameObject.Find("Line");
         lines[1] = GameObject.Find("Line (1)");
@@ -37,24 +46,48 @@ public class GManager : MonoBehaviour
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             RaycastHit2D hit2D = Physics2D.Raycast((Vector2)ray.origin, (Vector2)ray.direction);
 
-            if (hit2D)
+            int playerId = (int)PhotonNetwork.LocalPlayer.CustomProperties["PlayerID"];
+            if (hit2D && (turnNum % 2) == playerId)
             {
                 GameObject cell = hit2D.collider.gameObject;
-                Debug.Log("ヒットしました！");
-
-                if (!cell.GetComponent<CellController>().IsOccupied())
+                if (board[cell.GetComponent<CellController>().getIndex()] == NO_PLAAYER)
                 {
-                    turnNum++;
                     PlaceSymbol(cell);
+                    photonView.RPC(nameof(countUpTurnNum), RpcTarget.All);
                 }
             }
         }
 
-        if(Input.GetKey(KeyCode.Space) && turn == 0)
+        if(Input.GetKey(KeyCode.Space) && turnNum == 0)
         {
             SceneManager.LoadScene(1);
         }
     }
+
+    [PunRPC]
+    private void countUpTurnNum(){
+        turnNum++;
+    }
+
+    [PunRPC]
+    public void RpcSetBoard(int index, int ox){
+        if (0 <= index && index <= 8){
+            board[index] = ox;
+        } else {
+            Debug.Log("invalid index...");
+        }
+    }
+
+    public int getBoard(int index){
+        if (0 <= index && index <= 8){
+            return board[index];
+        } else {
+            Debug.Log("invalid index...");
+        }
+
+        return -2;
+    }
+
 
     private void OnGUI()
     {
@@ -70,76 +103,80 @@ public class GManager : MonoBehaviour
 
     private void PlaceSymbol(GameObject cell)
     {
-        if(cell.GetComponent<CellController>().MarkCell(turn))
+        int playerId = (int)PhotonNetwork.LocalPlayer.CustomProperties["PlayerID"];
+        if(cell.GetComponent<CellController>().MarkCell())
         {
             int index = cell.GetComponent<CellController>().getIndex();
-            board[index] = turn;
+            board[index] = playerId;
             isFinish();
-            turn = -turn;
         } 
     }
 
     private bool isFinish()
     {
-        if(board[0] != 0 && board[0] == board[1] && board[0] == board[2])
+        if(isLine(board[0], board[1], board[2]))
         {
-            lines[0].SetActive(true);
-            setText();
+            photonView.RPC(nameof(displayResult), RpcTarget.All, 0);
             return true;
-        }else if(board[3] != 0 && board[3] == board[4] && board[3] == board[5])
+        }else if(isLine(board[3], board[4], board[5]))
         {
-            lines[1].SetActive(true);
-            setText();
+            photonView.RPC(nameof(displayResult), RpcTarget.All, 1);
             return true;
-        }else if(board[6] != 0 && board[6] == board[7] && board[6] == board[8])
+        }else if(isLine(board[6], board[7], board[8]))
         {
-            lines[2].SetActive(true);
-            setText();
+            photonView.RPC(nameof(displayResult), RpcTarget.All, 2);
             return true;
-        }else if(board[0] != 0 && board[0] == board[3] && board[0] == board[6])
+        }else if(isLine(board[0], board[3], board[6]))
         {
-            lines[3].SetActive(true);
-            setText();
+            photonView.RPC(nameof(displayResult), RpcTarget.All, 3);
             return true;
-        }else if(board[1] != 0 && board[1] == board[4] && board[1] == board[7])
+        }else if(isLine(board[1], board[4], board[7]))
         {
-            lines[4].SetActive(true);
-            setText();
+            photonView.RPC(nameof(displayResult), RpcTarget.All, 4);
             return true;
-        }else if(board[2] != 0 && board[2] == board[5] && board[2] == board[8])
+        }else if(isLine(board[2], board[5], board[8]))
         {
-            lines[5].SetActive(true);
-            setText();
+            photonView.RPC(nameof(displayResult), RpcTarget.All, 5);
             return true;
-        }else if(board[0] != 0 && board[0] == board[4] && board[0] == board[8])
+        }else if(isLine(board[0], board[4], board[8]))
         {
-            lines[6].SetActive(true);
-            setText();
+            photonView.RPC(nameof(displayResult), RpcTarget.All, 6);
             return true;
-        }else if(board[2] != 0 && board[2] == board[4] && board[2] == board[6])
+        }else if(isLine(board[2], board[4], board[6]))
         {
-            lines[7].SetActive(true);
-            setText();
+            photonView.RPC(nameof(displayResult), RpcTarget.All, 7);
             return true;
         }else if (turnNum == 9)
         {
             resultText = "引き分けです";
-            turn = 0;
             return true;
         }
         return false;
     }
 
-    private void setText(){
-        if (turn == 1)
+    private bool isLine(int elem1, int elem2, int elem3)
+    {
+        return (elem1 != -1) && (elem1 == elem2) && (elem1 == elem3);
+    }
+
+    private void displayText(){
+        if ((turnNum % 2) == PLAYER1)
         {
             resultText = "Oの勝ちです";
         }
-        else if (turn == -1)
+        else if ((turnNum % 2) == PLAYER2)
         {
             resultText = "Xの勝ちです";
         }
-        turn = 0;
     }
 
+    [PunRPC]
+    private void displayResult(int index){
+        lines[index].SetActive(true);
+        displayText();
+    }
+
+    public int getTurnNum(){
+        return turnNum;
+    }
 }
