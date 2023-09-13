@@ -58,7 +58,7 @@ public class GManager : MonoBehaviourPunCallbacks
             }
         }
 
-        if(Input.GetKey(KeyCode.Space) && turnNum == 0)
+        if(Input.GetKey(KeyCode.Space) && turnNum == 9)
         {
             SceneManager.LoadScene(1);
         }
@@ -168,6 +168,8 @@ public class GManager : MonoBehaviourPunCallbacks
         {
             resultText = "Xの勝ちです";
         }
+
+        turnNum = 8;
     }
 
     [PunRPC]
